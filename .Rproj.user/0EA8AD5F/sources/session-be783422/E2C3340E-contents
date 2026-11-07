@@ -1,0 +1,449 @@
+---
+title: "Explaining the Inexplicable: Visualizing Misleading Social Support Data"
+format: html
+editor: visual
+---
+
+```{r, include=FALSE}
+
+#loading packages, importing data, and creating objects
+
+library(ggtext)
+library(tidyverse)
+library(readxl)
+library(ggplot2)
+
+ssq6 <- data.frame(
+  time = c("Pre-Intervention", "Post-Intervention"),
+  mean = c(4.363157895, 4.131578947),
+  se = c(0.174, 0.258)
+)
+
+ssq6_by_attendance <- data.frame(
+  time = c(
+    "Low Attendance Pre-Intervention",
+    "Low Attendance Post-Intervention",
+    "High Attendance Pre-Intervention",
+    "High Attendance Post-Intervention"
+  ),
+  mean = c(4.5, 3.27, 4.166666667, 5.088888889),
+  se = c(0.26, 0.201, 0.217, 0.220)
+)
+
+all_ssq6 <- data.frame(
+  time = c(
+    "Total Pre-Intervention",
+    "Total Post-Intervention",
+    "Low Attendance Pre-Intervention",
+    "Low Attendance Post-Intervention",
+    "High Attendance Pre-Intervention",
+    "High Attendance Post-Intervention"
+  ),
+  mean = c(
+    4.363157895, 4.131578947,
+    4.5, 3.27,
+    4.166666667, 5.088888889
+  )
+)
+
+all_ssq6 <- all_ssq6 |>
+  mutate(
+    group = case_when(
+      grepl("^Total", time) ~ "Overall",
+      grepl("^Low Attendance", time) ~ "Low Attendance",
+      grepl("^High Attendance", time) ~ "High Attendance"
+    ),
+    timepoint = case_when(
+      grepl("Pre-Intervention$", time) ~ "Pre-Intervention",
+      grepl("Post-Intervention$", time) ~ "Post-Intervention"
+    ),
+    group = factor(
+      group,
+      levels = c("Overall", "Low Attendance", "High Attendance")
+    ),
+    timepoint = factor(
+      timepoint,
+      levels = c("Pre-Intervention", "Post-Intervention")
+    )
+  )
+
+all_ssq6 |>
+  select(group, timepoint, mean)
+
+```
+
+###### Data Visualization Assignment - Megan Sutton (251076518)
+
+### Story Summary
+
+Social support is a salient predictor of one’s wellbeing. Queer women report high levels of adverse health outcomes, likely owing to the unique intersection of barriers (e.g., homophobia, sexism) and the dearth of inclusive contexts. Evidence suggests group-based exercise programs can substantially increase social support, thereby supporting wellbeing. Thus, researchers developed a group-based exercise intervention for queer women to improve their sense of social support. Researchers hypothesized that, in accordance with existing literature surrounding physical activity interventions and marginalized communities, participants would report an increase in social support.
+
+Surprisingly, following program engagement, participants reported lower levels of social support. This drastically contrasting our hypotheses and existing literature. How could study participation result in lower social supported? Findings were inexplicable until we zoomed out.
+
+Researchers noticed that attendance rates varied, where some participants attended upwards of 90% of sessions, while others attended less than 10%. We hypothesized that low attendance prevented those who did not attend many sessions did not experience the belongingness gain social support we intended as they were not there to experience the group dynamics or form relationships with co-participants. Upon further analysis, high attendance participants who attended more than 50% of sessions reported an increase in social support, while those who attended less than 50% of sessions reported a decrease. This paints a clearer picture and is more aligned with our hypotheses and findings in existing research. Ultimately, this is a valuable lesson; when faced with an unexpected outcome, zoom out to look at the whole story.
+
+### Version A - Social Support Following Engagement in a Group-Based Physical Activity Intervention Stratified by Program Adherence
+
+#### Introduction.
+
+Social support refers to the perception, experience, or actuality of being cared for, valued, and assisted by a others and been identified as a salient contributor to one’s overall wellbeing, where those with higher senses of connection and belonging experience a lower risk of adverse physical, mental, and emotional health outcomes. Queer women report disproportionately poor physical, mental, and emotional health outcomes. These adverse outcomes are likely influenced by a set of barriers that uniquely impact queer women (e.g., homophobia, sexism, gender-based violence, overt discrimination). A growing body of literature has sought to employ group-based physical activity interventions in diverse marginalized populations, as it is believed that shared social identities, safe spaces, and group dynamics enable social support and senses of belonging, thereby supporting one’s overall health. Existing evidence supports the notion that such interventions yield positive effects in the perceived social support of participants.
+
+Though there have been numerous calls to specifically address the unique needs of queer women, there have been no interventions designed to support the senses of belongingness and social support in this population. As such, this proof-of-concept study aimed to examine the preliminary effectiveness of a group physical activity program for queer women.
+
+#### Methods.
+
+Queer women were recruited at Western University via flyers, mass email recruitment services, and social media posts. Eligible participants engaged in a 6-week queer-led physical activity intervention designed to support relatedness. Researchers recorded participant attendance throughout the intervention. Social support was explored using the Social Support Questionnaire-Short Form (SSQ6; Sarason et al., 1987). Assessments of perceived social were administered before and after the intervention.
+
+#### Results.
+
+From June 2025 to March 2026, (N = 19) queer women were enrolled in and completed the physical activity program. Results from this pilot study contrasted existing evidence, where participants reported lower levels of social support following engagement in the physical activity intervention. Researchers found a small negative effect of the intervention, depicted in Figure 1.
+
+```{r, echo = FALSE}
+
+#scientific article: visual 1 - the problem
+
+ggplot(
+  ssq6,
+  aes(
+    x = factor(time, levels = c("Pre-Intervention", "Post-Intervention")),
+    y = mean,
+    fill = time
+  )
+) +
+  geom_col(width = 0.6) +
+  geom_errorbar(
+    aes(ymin = mean - se, ymax = mean + se),
+    width = 0.1
+  ) +
+  geom_text(
+    aes(label = c("", "d = -0.198")),
+    vjust = -3,
+    family = "Times New Roman",
+    size = 4
+  ) +
+  
+labs(
+  x = NULL,
+  y = "Social Support",
+  caption = paste0(
+    "<b>Figure 1.</b> Perceived Social Support at Baseline &amp; Post-Intervention."
+  )
+) +
+scale_y_continuous(
+  limits = c(0, 6),
+  breaks = 0:6,
+  expand = expansion(mult = c(0, 0.15))
+) +
+  scale_fill_manual(
+    values = c(
+      "Post-Intervention" = "grey45",
+      "Pre-Intervention" = "grey85"
+    )
+  ) +
+theme(
+  panel.background = element_rect(fill = "white", colour = NA),
+  panel.grid = element_blank(),
+  text = element_text(family = "Times New Roman"),
+  plot.caption = ggtext::element_markdown(
+    hjust = 0,
+    size = 10,
+    lineheight = 1.2,
+    margin = margin(t = 15)
+  ),
+  plot.caption.position = "plot",
+  plot.margin = margin(t = 10, r = 15, b = 25, l = 10),
+  legend.position = "none",
+  axis.line = element_line(linewidth = 0.5),
+  axis.ticks = element_line(),
+  axis.ticks.length = unit(0.15, "cm")
+)
+  
+```
+
+Notably, attendance rates varied drastically between participants, where some attended nearly all sessions offered and others rarely attended. As such, researchers conducted an additional analysis, separating participants by their attendance rates. This analysis uncovered expected results, where those who attended at least half of the intervention reported an increase in social support. Specifically, a large effect was determined. Conversely, participants who attended less than half of all offered sessions reported lower levels of social support, revealing a large negative effect. Results are depicted visually in Figure 2.
+
+```{r, echo = FALSE}
+
+#scientific article: visual 2 - the explanation
+
+ssq6_by_attendance$group <- c(
+  "Low Attendance", "Low Attendance",
+  "High Attendance", "High Attendance"
+)
+
+ssq6_by_attendance$timepoint <- c(
+  "Pre-Intervention", "Post-Intervention",
+  "Pre-Intervention", "Post-Intervention"
+)
+
+ssq6_by_attendance$group <- factor(
+  ssq6_by_attendance$group,
+  levels = c("Low Attendance", "High Attendance")
+)
+
+ssq6_by_attendance$timepoint <- factor(
+  ssq6_by_attendance$timepoint,
+  levels = c("Pre-Intervention", "Post-Intervention")
+)
+
+effect_sizes <- data.frame(
+  group = factor(
+    c("Low Attendance", "High Attendance"),
+    levels = c("Low Attendance", "High Attendance")
+  ),
+  mean = c(
+    max(ssq6_by_attendance$mean[ssq6_by_attendance$group == "Low Attendance"] +
+          ssq6_by_attendance$se[ssq6_by_attendance$group == "Low Attendance"]),
+    max(ssq6_by_attendance$mean[ssq6_by_attendance$group == "High Attendance"] +
+          ssq6_by_attendance$se[ssq6_by_attendance$group == "High Attendance"])
+  ),
+  label = c("d = -2.65", "d = 2.13")
+)
+
+ggplot(
+  ssq6_by_attendance,
+  aes(x = group, y = mean, fill = timepoint)
+) +
+  geom_col(
+    position = position_dodge(width = 0.7),
+    width = 0.6
+  ) +
+  geom_errorbar(
+    aes(ymin = mean - se, ymax = mean + se),
+    position = position_dodge(width = 0.7),
+    width = 0.15
+  ) +
+  geom_text(
+    data = effect_sizes,
+    aes(x = group, y = mean + 0.35, label = label),
+    inherit.aes = FALSE,
+    family = "Times New Roman",
+    size = 4
+  ) +
+  labs(
+    x = NULL,
+    y = "Social Support",
+    caption = "<b>Figure 2.</b> Perceived Social Support at Baseline and Post-Intervention Stratified by Participant Attendance.",
+    fill = NULL
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Pre-Intervention" = "grey85",
+      "Post-Intervention" = "grey45"
+    )
+  ) +
+  scale_y_continuous(
+    expand = expansion(mult = c(0, 0.15))
+  ) +
+  theme_classic() +
+  theme(
+    text = element_text(family = "Times New Roman"),
+    plot.caption = ggtext::element_markdown(
+      hjust = 0,
+      size = 10,
+      lineheight = 1.2,
+      margin = margin(t = 15)
+    ),
+    plot.caption.position = "plot",
+    plot.margin = margin(t = 10, r = 15, b = 25, l = 10),
+    axis.line = element_line(linewidth = 0.8),
+    axis.ticks = element_line(),
+    axis.ticks.length = grid::unit(0.15, "cm"),
+    legend.position = "right",
+    legend.margin = margin(t = 75)
+  )
+```
+
+#### Discussion.
+
+This study is the first physical activity intervention that aimed to provide queer women with an opportunity to engage in group-based exercise to enable relatedness and social support. Though initial results suggested the intervention had a small negative effect on the social support of participants, further investigation revealed that participants who attended most of the intervention reported a substantial increase in social support, thus participants with poor attendance created misleading findings.
+
+#### Conclusion.
+
+Overall, this study suggests that the proposed intervention has a large positive effect on queer women’s social support and that this relationship is greatly influenced by one’s attendance. Given the disparities in health outcomes observed in queer women, it is important to direct attention, research, and resources towards the creation of physical activity programs specifically designed by and for this population.
+
+### Version B - Attendance Matters: Can Group Fitness Classes Help Queer Women Feel More Connected?
+
+Social support is about more than having people around us. It’s about feeling cared for, valued, and supported by others. These connections can play an important role in our overall well-being and quality of life. Queer women, however, often face barriers, such as homophobia and sexism, that limit their ability to feel safe, connected, and supported. These challenges exist alongside well-documented disparities in health outcomes, highlighting the importance of creating spaces where queer women can build meaningful connections.
+
+One promising approach is group-based physical activity. Exercising alongside others who share aspects of our identities can create opportunities for connection, belonging, and mutual support. Research involving other marginalized groups has found encouraging evidence that group-based fitness programs can strengthen perceived social support. But could a program designed specifically for queer women offer similar benefits?
+
+In 2025, a group of researchers at Western University got together to answer this question. This group developed a 6-week exercise program which would be led by other queer women. Through the development of relationships with their peers, this program was specifically designed to foster senses of community and belonging. The goal was to explore whether taking part in a shared, queer-led physical activity program might help participants feel more socially supported. At the end of the study, researchers analyzed the data only to find a surprising result.
+
+#### Participants felt... Worse?
+
+At first glance, the findings seemed to challenge expectations.
+
+Across all 19 participants, perceived social support was lower after the 6-week program than before it. The overall change reflected a small negative effect.
+
+```{r, echo = FALSE}
+
+#accessible & dynamic outlet: figure 1 - the problem
+
+ggplot(
+  ssq6,
+  aes(
+    x = factor(time, levels = c("Pre-Intervention", "Post-Intervention")),
+    y = mean,
+    group = 1
+  )
+) +
+  geom_line(linewidth = 1.2, colour = "goldenrod") +
+  geom_point(size = 3, colour = "goldenrod") +
+  geom_text(
+    aes(label = c("Before", "After")),
+    vjust = -1.2,
+    family = "Georgia",
+    size = 4
+  ) +
+  scale_x_discrete(
+    labels = NULL,
+    breaks = NULL,
+    expand = expansion(add = 0.5)
+  ) +
+  scale_y_continuous(
+    limits = c(3, 5.5),
+    breaks = seq(3, 5.5, by = 0.5),
+    expand = expansion(mult = c(0, 0.02))
+  ) +
+  labs(
+    x = NULL,
+    y = "Social Support",
+    title = NULL
+  ) +
+  theme_classic() +
+  theme(
+    text = element_text(family = "Georgia"),
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.line.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.title.y = element_text(
+      size = 13,
+      colour = "black",
+      margin = margin(r = -12)
+    ),
+    plot.title = element_blank()
+  ) +
+  annotate(
+    "segment",
+    x = 0.7, xend = 0.7,
+    y = 3, yend = 5.5,
+    arrow = arrow(
+      length = unit(0.2, "cm"),
+      type = "closed"
+    ),
+    linewidth = 0.7,
+    colour = "black"
+  )
+
+
+```
+
+This was not the improvement researchers had anticipated. How could participating in a group fitness class make participants feel less connected than they had when they started?
+
+But this result didn't tell the whole story.
+
+#### Zooming out to see the whole picture
+
+Researchers noticed that participants differed considerably in how often they attended. Some took part in nearly every session, while others attended fewer than half. This got the group thinking; how could the program impact people who didn’t come? Researchers therefore explored whether the pattern of results differed according to attendance. They separated participants into two groups: those who attended at least half of the sessions and those who attended fewer than half.
+
+And just like that - A different pattern emerged.
+
+Participants who attended at least half of the sessions reported higher perceived social support after finishing the program, while participants who attended fewer than half of the sessions reported lower social support.
+
+```{r, echo = FALSE}
+
+#accessible & dynamic outlet: figure 2 - the explanation
+
+ggplot(
+  all_ssq6,
+  aes(
+    x = timepoint,
+    y = mean,
+    group = group,
+    colour = group
+  )
+) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 3) +
+  scale_x_discrete(
+    labels = NULL,
+    breaks = NULL,
+    expand = expansion(add = 0.5)
+  ) +
+  scale_y_continuous(
+  limits = c(2.3, 5.5),
+  breaks = seq(3, 5.5, by = 0.5),
+  expand = expansion(mult = c(0, 0.02))
+) +
+  scale_colour_manual(
+    values = c(
+      "Overall" = "goldenrod",
+      "High Attendance" = "#4F8065",
+      "Low Attendance" = "#9E4138"
+    )
+  )+
+  labs(
+    x = NULL,
+    y = "Social Support",
+    title = NULL
+  ) +
+  theme_classic() +
+  theme(
+    text = element_text(family = "Georgia"),
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.line.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.title.y = element_text(
+      size = 13,
+      colour = "black",
+      margin = margin(r = -12)
+    ),
+    plot.title = element_blank()
+  ) +
+  annotate(
+    "segment",
+    x = 0.7, xend = 0.7,
+    y = 3, yend = 5.5,
+    arrow = arrow(
+      length = unit(0.2, "cm"),
+      type = "closed"
+    ),
+    linewidth = 0.7,
+    colour = "black"
+  )   +
+  annotate(
+    "segment",
+    x = 1, xend = 2,
+    y = 2.8, yend = 2.8,
+    arrow = arrow(
+      length = unit(0.2, "cm"),
+      type = "closed"
+    ),
+    linewidth = 0.7,
+    colour = "black"
+  ) +
+  annotate(
+    "text",
+    x = 1.5,
+    y = 2.6,
+    label = "Intervention Progression",
+    family = "Georgia",
+    size = 4,
+    colour = "black"
+  )
+```
+
+In other words, the overall declining social support was misleading. It turns out that attendance cannot be ignored, as those who did not participate made the program seem, not only ineffective, but harmful! Looking at the people who attended, the data suggests that group fitness classes may be an effective way to help queer women feel connected, supported, and seen.
+
+#### What does this mean?
+
+The key takeaway is not simply that offering group exercise will help queer women feel socially supported. What matters is that people show up and participate.
+
+There is still much to be done here; results are preliminary and leave many questions unanswered. However, as queer women often face distinctive social barriers and disparities in health outcomes, inclusive opportunities to connect and be active deserve are a great place to start. Programs designed with and for this population may offer a valuable setting in which to explore how physical activity, shared identity, and social relationships intersect.
